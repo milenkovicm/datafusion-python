@@ -23,6 +23,7 @@ use std::sync::Arc;
 use arrow::array::RecordBatchReader;
 use arrow::ffi_stream::ArrowArrayStreamReader;
 use arrow::pyarrow::FromPyArrow;
+use ballista::prelude::SessionContextExt;
 use datafusion::execution::session_state::SessionStateBuilder;
 use object_store::ObjectStore;
 use url::Url;
@@ -271,11 +272,13 @@ pub struct PySessionContext {
 
 #[pymethods]
 impl PySessionContext {
-    #[pyo3(signature = (config=None, runtime=None))]
+    #[pyo3(signature = (config=None, runtime=None, ballista_url=None))]
     #[new]
     pub fn new(
         config: Option<PySessionConfig>,
         runtime: Option<PyRuntimeConfig>,
+        ballista_url: Option<String>,
+        py: Python,
     ) -> PyResult<Self> {
         let config = if let Some(c) = config {
             c.config
@@ -293,9 +296,16 @@ impl PySessionContext {
             .with_runtime_env(runtime)
             .with_default_features()
             .build();
-        Ok(PySessionContext {
-            ctx: SessionContext::new_with_state(session_state),
-        })
+
+        match ballista_url {
+            Some(url) => Ok(PySessionContext {
+                ctx: wait_for_future(py, SessionContext::remote_with_state(&url, session_state))
+                    .map_err(DataFusionError::from)?,
+            }),
+            None => Ok(PySessionContext {
+                ctx: SessionContext::new_with_state(session_state),
+            }),
+        }
     }
 
     /// Register an object store with the given name

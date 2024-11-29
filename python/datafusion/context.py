@@ -423,7 +423,7 @@ class SessionContext:
     """
 
     def __init__(
-        self, config: SessionConfig | None = None, runtime: RuntimeConfig | None = None
+        self, config: SessionConfig | None = None, runtime: RuntimeConfig | None = None, url: str | None = None
     ) -> None:
         """Main interface for executing queries with DataFusion.
 
@@ -448,7 +448,7 @@ class SessionContext:
         config = config.config_internal if config is not None else None
         runtime = runtime.config_internal if runtime is not None else None
 
-        self.ctx = SessionContextInternal(config, runtime)
+        self.ctx = SessionContextInternal(config, runtime, url)
 
     def register_object_store(
         self, schema: str, store: Any, host: str | None = None
