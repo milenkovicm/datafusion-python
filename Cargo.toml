@@ -50,6 +50,9 @@ futures = "0.3"
 object_store = { version = "0.11.0", features = ["aws", "gcp", "azure", "http"] }
 url = "2"
 
+ballista-core = { version = "43" }
+ballista = { version = "43" }
+
 [build-dependencies]
 prost-types = "0.13" # keep in line with `datafusion-substrait`
 pyo3-build-config = "0.22"

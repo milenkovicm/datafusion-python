@@ -14,12 +14,14 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-
+# %%
 from datafusion import SessionContext
 
 ctx = SessionContext()
-ctx.register_parquet("taxi", "yellow_tripdata_2021-01.parquet")
+ctx.register_parquet("taxi", "/Users/marko/TMP/yellow_tripdata_2021-01.parquet")
 df = ctx.sql(
     "select passenger_count, count(*) from taxi where passenger_count is not null group by passenger_count order by passenger_count"
 )
 df.show()
+
+# %%

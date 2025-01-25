@@ -25,6 +25,7 @@ description = "Build and run queries against data"
 readme = "README.md"
 license = { file = "LICENSE.txt" }
 requires-python = ">=3.7"
+version = "43.2.0"
 keywords = ["datafusion", "dataframe", "rust", "query-engine"]
 classifier = [
     "Development Status :: 2 - Pre-Alpha",
@@ -42,7 +43,7 @@ classifier = [
     "Programming Language :: Python",
     "Programming Language :: Rust",
 ]
-dependencies = ["pyarrow>=11.0.0", "typing-extensions;python_version<'3.13'"]
+dependencies = ["pyarrow>=11.0.0", "typing-extensions;python_version<'3.13'", "cloudpickle>= 3.1.1"]
 
 [project.urls]
 homepage = "https://datafusion.apache.org/python"

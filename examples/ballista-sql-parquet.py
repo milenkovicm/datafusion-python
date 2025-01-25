@@ -6,7 +6,7 @@
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
 #
-#   http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
@@ -14,14 +14,15 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
+# %%
+from datafusion import SessionContext
+import cloudpickle 
 
-maturin>=1.5.1
-mypy
-numpy
-pyarrow>=11.0.0
-pytest
-ruff
-toml
-importlib_metadata; python_version < "3.8"
-PyGitHub
-cloudpickle>=3.1.1
+ctx = SessionContext(url = "df://localhost:50050")
+ctx.register_parquet("taxi", "/Users/marko/TMP/yellow_tripdata_2021-01.parquet")
+df = ctx.sql(
+    "select passenger_count, count(*) from taxi where passenger_count is not null group by passenger_count order by passenger_count"
+)
+df.show()
+
+# %%

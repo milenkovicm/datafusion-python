@@ -23,6 +23,7 @@ use std::sync::Arc;
 use arrow::array::RecordBatchReader;
 use arrow::ffi_stream::ArrowArrayStreamReader;
 use arrow::pyarrow::FromPyArrow;
+use ballista::prelude::{SessionConfigExt, SessionContextExt};
 use datafusion::execution::session_state::SessionStateBuilder;
 use object_store::ObjectStore;
 use url::Url;
@@ -272,16 +273,28 @@ pub struct PySessionContext {
 
 #[pymethods]
 impl PySessionContext {
-    #[pyo3(signature = (config=None, runtime=None))]
+    #[pyo3(signature = (config=None, runtime=None, ballista_url=None))]
     #[new]
     pub fn new(
         config: Option<PySessionConfig>,
         runtime: Option<PyRuntimeConfig>,
+        ballista_url: Option<String>,
+        py: Python,
     ) -> PyResult<Self> {
         let config = if let Some(c) = config {
             c.config
         } else {
             SessionConfig::default().with_information_schema(true)
+        };
+        let config = if ballista_url.is_some() {
+            // this is not right
+            // crate::distributed::setup_python_path();
+            let lc = Python::with_gil(|py| {
+                crate::distributed::codec::PyLogicalCodec::try_new(py).unwrap()
+            });
+            config.with_ballista_logical_extension_codec(Arc::new(lc))
+        } else {
+            config
         };
         let runtime_config = if let Some(c) = runtime {
             c.config
@@ -294,9 +307,15 @@ impl PySessionContext {
             .with_runtime_env(runtime)
             .with_default_features()
             .build();
-        Ok(PySessionContext {
-            ctx: SessionContext::new_with_state(session_state),
-        })
+        match ballista_url {
+            Some(url) => Ok(PySessionContext {
+                ctx: wait_for_future(py, SessionContext::remote_with_state(&url, session_state))
+                    .map_err(DataFusionError::from)?,
+            }),
+            None => Ok(PySessionContext {
+                ctx: SessionContext::new_with_state(session_state),
+            }),
+        }
     }
 
     /// Register an object store with the given name
