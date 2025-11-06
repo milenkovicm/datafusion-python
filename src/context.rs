@@ -167,6 +167,23 @@ impl PySessionConfig {
     fn set(&self, key: &str, value: &str) -> Self {
         Self::from(self.config.clone().set_str(key, value))
     }
+
+    pub fn get_all(&self, py: Python) -> PyResult<PyObject> {
+        let entries: Vec<(String, Option<String>)> = {
+            let options = self.config.options();
+            options
+                .entries()
+                .into_iter()
+                .map(|entry| (entry.key.clone(), entry.value.clone()))
+                .collect()
+        };
+
+        let dict = PyDict::new(py);
+        for (key, value) in entries {
+            dict.set_item(key, value.into_pyobject(py)?)?;
+        }
+        Ok(dict.into())
+    }
 }
 
 /// Runtime options for a SessionContext
@@ -907,6 +924,10 @@ impl PySessionContext {
 
     pub fn empty_table(&self) -> PyDataFusionResult<PyDataFrame> {
         Ok(PyDataFrame::new(self.ctx.read_empty()?))
+    }
+
+    pub fn session_config(&self) -> PySessionConfig {
+        self.ctx.copied_config().into()
     }
 
     pub fn session_id(&self) -> String {

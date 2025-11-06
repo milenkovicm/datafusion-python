@@ -710,3 +710,10 @@ def test_create_dataframe_with_global_ctx(batch):
     result = df.collect()[0].column(0)
 
     assert result == pa.array([4, 5, 6])
+
+
+def test_get_session_config(ctx):
+    config = ctx.session_config()
+    config_dict = config.get_all()
+
+    assert config_dict["datafusion.catalog.create_default_catalog_and_schema"] == "true"

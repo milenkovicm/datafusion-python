@@ -290,6 +290,14 @@ class SessionConfig:
         self.config_internal = self.config_internal.set(key, value)
         return self
 
+    def get_all(self) -> dict[str, str]:
+        """Returns all configuration options in a dictionary.
+
+        Returns:
+            All configuration options in a dictionary.
+        """
+        return self.config_internal.get_all()
+
 
 class RuntimeEnvBuilder:
     """Runtime configuration options."""
@@ -1011,6 +1019,10 @@ class SessionContext:
     def empty_table(self) -> DataFrame:
         """Create an empty :py:class:`~datafusion.dataframe.DataFrame`."""
         return DataFrame(self.ctx.empty_table())
+
+    def session_config(self) -> SessionConfig:
+        """Return an copy of :py:class:`SessionConfig`."""
+        return self.ctx.session_config()
 
     def session_id(self) -> str:
         """Return an id that uniquely identifies this :py:class:`SessionContext`."""
